@@ -1,78 +1,80 @@
-# OIBSIP_python-programming-TASK2
-# 🧮 BMI Calculator - Python Project
+# ADVANCED GUI BMI Calculator
 
-## 📝 Project Description
+import tkinter as tk
+from tkinter import messagebox
+import json
+import os
+import matplotlib.pyplot as plt
 
-A simple yet powerful **BMI (Body Mass Index) Calculator** built with Python.
+data_file = "bmi_data.json"
 
-- 🧑‍💻 **For Beginners**: A command-line based BMI calculator that prompts the user for weight (in kilograms) and height (in meters), calculates the BMI, and categorizes the result (Underweight, Normal, Overweight, Obese) based on standard BMI ranges.
+def save_data(weight, height, bmi):
+    entry = {"weight": weight, "height": height, "bmi": bmi}
+    data = []
+    if os.path.exists(data_file):
+        with open(data_file, "r") as file:
+            data = json.load(file)
+    data.append(entry)
+    with open(data_file, "w") as file:
+        json.dump(data, file, indent=2)
 
-- 💻 **For Advanced Users**: A GUI-based BMI calculator using **Tkinter** or **PyQt**. Features include user input forms, real-time BMI calculation, graphical results, historical data storage, and statistical analysis via visual graphs.
+def show_graph():
+    if not os.path.exists(data_file):
+        messagebox.showinfo("Info", "No data available to display.")
+        return
+    with open(data_file, "r") as file:
+        data = json.load(file)
+    bmis = [entry['bmi'] for entry in data]
+    plt.plot(range(1, len(bmis)+1), bmis, marker='o')
+    plt.title("BMI Over Time")
+    plt.xlabel("Entry Number")
+    plt.ylabel("BMI")
+    plt.grid(True)
+    plt.show()
 
----
+def classify_bmi(bmi):
+    if bmi < 18.5:
+        return "Underweight"
+    elif 18.5 <= bmi < 25:
+        return "Normal weight"
+    elif 25 <= bmi < 30:
+        return "Overweight"
+    else:
+        return "Obese"
 
-## 🚀 Features
+def calculate():
+    try:
+        weight = float(weight_entry.get())
+        height = float(height_entry.get())
+        if height <= 0:
+            raise ValueError
+        bmi = round(weight / (height ** 2), 2)
+        result_label.config(text=f"Your BMI is: {bmi}")
+        category = classify_bmi(bmi)
+        category_label.config(text=f"Category: {category}")
+        save_data(weight, height, bmi)
+    except ValueError:
+        messagebox.showerror("Invalid Input", "Please enter valid positive numbers.")
 
-### ✅ Beginner Version
-- Input weight and height via terminal
-- BMI formula implementation: `BMI = weight / (height^2)`
-- Classification based on BMI value
-- Console output for result and category
+# GUI setup
+app = tk.Tk()
+app.title("BMI Calculator")
+app.geometry("300x300")
 
-### 🌟 Advanced Version
-- GUI (Graphical User Interface) using Tkinter/PyQt
-- Form validation for inputs
-- BMI result display with category
-- Historical data storage (e.g., JSON/SQLite)
-- Graphical visualization (using `matplotlib` or similar)
-- User-specific statistics and trends
+tk.Label(app, text="Enter your weight (kg):").pack()
+weight_entry = tk.Entry(app)
+weight_entry.pack()
 
----
+tk.Label(app, text="Enter your height (m):").pack()
+height_entry = tk.Entry(app)
+height_entry.pack()
 
-## 🔑 Key Concepts & Challenges
+tk.Button(app, text="Calculate BMI", command=calculate).pack(pady=10)
+result_label = tk.Label(app, text="")
+result_label.pack()
+category_label = tk.Label(app, text="")
+category_label.pack()
 
-1. **User Input Validation**  
-   Ensure valid and realistic input values (e.g., height > 0) and error handling for wrong inputs.
+tk.Button(app, text="Show BMI Graph", command=show_graph).pack(pady=5)
 
-2. **BMI Calculation**  
-   Formula: `BMI = weight (kg) / height² (m²)`
-
-3. **Categorization**  
-   Based on WHO standards:
-   - Underweight: BMI < 18.5
-   - Normal: BMI 18.5 - 24.9
-   - Overweight: BMI 25 - 29.9
-   - Obese: BMI ≥ 30
-
-4. **GUI Design (Advanced)**  
-   Clean layout with input fields, result section, and buttons for interaction.
-
-5. **Data Storage (Advanced)**  
-   Use **JSON**, **CSV**, or **SQLite** for saving user data across sessions.
-
-6. **Data Visualization (Advanced)**  
-   Use libraries like `matplotlib` or `seaborn` to show BMI history via line or bar graphs.
-
-7. **Error Handling (Advanced)**  
-   Graceful handling of input/output errors, missing files, or invalid data formats.
-
-8. **User Experience (Advanced)**  
-   Focus on responsive design, helpful instructions, and smooth interaction.
-
----
-
-## 📦 Technologies Used
-
-- Python 3.x
-- Tkinter / PyQt (GUI)
-- SQLite / JSON (Data Storage)
-- matplotlib / seaborn (Graphs)
-- argparse or input() for CLI version
-
----
-
-## 🛠 How to Run
-
-### ▶ Beginner CLI Version:
-```bash
-python bmi_calculator.py
+app.mainloop()
